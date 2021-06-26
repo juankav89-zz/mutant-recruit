@@ -26,15 +26,17 @@ exports.handler = function(event, context, callback) {
                 body: JSON.stringify('400-Bad Request not include dna data'),
             };
         }
-        
+        let dna = event.dna;
         laboratory.isReportedSequency(dna, dynamo).then(
             laboratoryResult => todo()
         );
-        let dna = event.dna;
         let process = 1;
         return {
             statusCode: 403,
             body: JSON.stringify('400-Forbidden'),
         };
+    }
+    catch(error){
+        console.log(error) //TODO
     }
 };
