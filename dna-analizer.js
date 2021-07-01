@@ -1,56 +1,51 @@
-/*
-predecessors strcutrure array:
-[
-    top-left => [
-        letter, count
-    ],
-    top => [
-        letter, count
-    ],
-    top-right => [
-        letter, count
-    ],
-    left => [
-        letter, count
-    ],
-    right => [
-        letter, count
-    ],
-    under-left => [
-        letter, count
-    ],
-    under => [
-        letter, count
-    ],
-    under-right => [
-        letter, count
-    ],
-]
- */
 /**
  * Validate nitrogenBasec
  * @param {string} data 
  * @param {array} predecessors 
  * @param {boolean} firstGene 
  */
-function validateNitrogenBase(data, key, predecessors, firstGene) {
-    //regex validation prevent recieve data with not valid characters
-    if (/^[ATCG]+$/.test(data)) {
-        // check list of precesors to validate if its posible mutant if some of next rules continue
-        /*
-            predecessors[top-left] its same
-            predecessors[top] its same
-            predecessors[top-right] its same
-            predecessors[left] its same
-            predecessors[right] its same
-            predecessors[under-left] its same
-            predecessors[under] its same
-            predecessors[under-right] its same
-
-            if some of predecessors count more than 4 same letters, stop process and report mutant
-        */
-    }
-    throw Error;
+function validateNitrogenBase(data, nitrogenBaseKey, key, predecessors) {
+    return new Promise((resolve, reject) => {
+        //Load data on predecessors map
+        let nitrogenBase = {"letter":data,"count":0}
+        
+        // Obtaion letters to validate
+        let map = [
+            predecessors[key-1][nitrogenBaseKey].top.letter ?? '',
+            predecessors[key-1][nitrogenBaseKey].topLeft.letter ?? '',
+            predecessors[key][nitrogenBaseKey-1].left.letter ?? ''
+        ];
+        let topCount = predecessors[key-1][nitrogenBaseKey].top.count ?? 0;
+        let topLeftCount = predecessors[key-1][nitrogenBaseKey].topLeft.count ?? 0;
+        let leftCount = predecessors[key-1][nitrogenBaseKey].left.count ?? 0;
+        if (map[0]==data) {
+            topCount = topCount + 1;
+        }
+        if (map[1]==data) {
+            topLeftCount = topLeftCount + 1;
+        };
+        if (map[2]==data) {
+            leftCount = leftCount + 1;
+        };
+        if ([topCount, topLeftCount, leftCount].includes(4)) {
+            resolve(true);
+        }
+        predecessors[key][nitrogenBaseKey] = {
+            top: {
+                letter:data,
+                count:topCount
+            },
+            left: {
+                letter:data,
+                count:leftCount
+            },
+            topLeft: {
+                letter:data,
+                count:topLeftCount
+            },
+        }
+        reject(predecessors);
+    });
 };
 
 function firstBasePairValidation(data) {
@@ -60,15 +55,17 @@ function firstBasePairValidation(data) {
     });
 }
 
+/**
+ * Get information from adn "basePair" and validate nitrogen base 
+ * @param {*} data 
+ * @param {*} key 
+ * @param {*} predecessors 
+ */
 function validateBasePair(data, key, predecessors) {
-    
-    data.split('').forEach(nitrogenBase => {
-        let result = validateNitrogenBase(nitrogenBase, key, predecessors, firstGene);
-        if (result.isMutant){
-            //response mutant resolve promise
+    data.split('').forEach(function (nitrogenBase, nitrogenBaseKey) {
+        validateNitrogenBase(nitrogenBase, nitrogenBaseKey, key, predecessors).then(()=>{
             resolve();
-        }
-        revoke(result.predecessors);
+        }).catch(predecessors => revoke(predecessors));
     });
 };
 
